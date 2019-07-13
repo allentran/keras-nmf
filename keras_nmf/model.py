@@ -40,7 +40,7 @@ class NMFModel(object):
         self.n_pairs = n_pairs
         self.k = n_factors
 
-    def compile_model(self):
+    def compile_model(self, learning_rate):
 
         i_input = layers.Input(shape=(1, ), dtype='int32')
         ij_input = layers.Input(shape=(self.n_pairs, ), dtype='int32')
@@ -63,7 +63,7 @@ class NMFModel(object):
             outputs=predicted_ij,
         )
         self.keras_model.compile(
-            optimizers.Adam(),
+            optimizers.Adam(lr=learning_rate),
             loss='mse',
             sample_weight_mode='temporal'
         )
