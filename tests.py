@@ -34,5 +34,8 @@ class TestFitRandom(unittest.TestCase):
         y = X[ii[:, None], jj, None]
         history = nmf_model.fit(ii, jj, y, epochs=1000, masking_weights=None).history
 
+        learned_w = nmf_model.W.get_weights()[0]
+
+        self.assertGreater(len(learned_w[learned_w == 0]), 0)
         self.assertLess(history['loss'][-1], 0.05)
 

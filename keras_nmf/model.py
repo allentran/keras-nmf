@@ -44,7 +44,7 @@ class NMFModel(object):
 
         i_input = layers.Input(shape=(1, ), dtype='int32')
         ij_input = layers.Input(shape=(self.n_pairs, ), dtype='int32')
-        W = layers.Embedding(
+        self.W = layers.Embedding(
             self.n,
             self.k,
             embeddings_constraint=constraints.NonNeg(),
@@ -53,8 +53,8 @@ class NMFModel(object):
         )
 
         squeeze_layer = layers.Lambda(lambda x: backend.squeeze(x, axis=1))
-        w_i = squeeze_layer(W(i_input))
-        w_j = W(ij_input)
+        w_i = squeeze_layer(self.W(i_input))
+        w_j = self.W(ij_input)
 
         predicted_ij = PredictedIJ(self.k, name='predicted_ij')([w_i, w_j])
 
