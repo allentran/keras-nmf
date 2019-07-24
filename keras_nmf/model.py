@@ -1,6 +1,7 @@
+from typing import Set, Dict
 
-import numpy as np
 from keras import layers, regularizers, constraints, initializers, backend, models, optimizers
+from scipy import spatial
 import tensorflow as tf
 
 
@@ -69,4 +70,21 @@ class NMFModel(object):
         )
 
     def fit(self, x_i, x_ij, y, masking_weights, epochs):
-        return self.keras_model.fit([x_i, x_ij], y, sample_weight=masking_weights, epochs=epochs)
+        return self.keras_model.fit([x_i, x_ij], y, sample_weight=masking_weights, epochs=epochs, verbose=2)
+
+    def get_nearest_neighbors(self, n_neighbors=10, mapper:Dict[int, int]=None) -> Dict[int, Set[int]]:
+        learned_w = self.W.get_weights()[0]
+        kdtree = spatial.cKDTree(learned_w)
+        nearest_neighbors = {}
+        for ii in range(self.n):
+            _, neighbors = kdtree.query(learned_w[ii, :], k=n_neighbors + 1)
+            nearest_neighbors[ii] = {neighbor for neighbor in neighbors.tolist() if neighbor != ii}
+
+        if mapper:
+            new_nearest_neighbors = {}
+            for int_key, neighbors in nearest_neighbors.items():
+                new_key = mapper[int_key]
+                new_nearest_neighbors[new_key] = {mapper[neighbor] for neighbor in neighbors}
+            nearest_neighbors = new_nearest_neighbors
+
+        return nearest_neighbors

@@ -22,6 +22,7 @@ class TestFitRandom(unittest.TestCase):
         np.random.seed(1692)
         n = 16
         k = 8
+        n_neighbors = 4
         n_pairs = 9
         nmf_model = NMFModel(n, n_pairs, k)
         nmf_model.compile_model(learning_rate=0.25)
@@ -33,9 +34,14 @@ class TestFitRandom(unittest.TestCase):
         jj = np.repeat(np.random.choice(n, n_pairs, replace=False)[None, :], n, 0)
         y = X[ii[:, None], jj, None]
         history = nmf_model.fit(ii, jj, y, epochs=1000, masking_weights=None).history
+        nearest_neighbors = nmf_model.get_nearest_neighbors(n_neighbors=n_neighbors)
 
         learned_w = nmf_model.W.get_weights()[0]
 
         self.assertGreater(len(learned_w[learned_w == 0]), 0)
         self.assertLess(history['loss'][-1], 0.05)
+        self.assertEqual(len(nearest_neighbors), n)
+        for ii in range(n):
+            self.assertIn(ii, nearest_neighbors)
+            self.assertEqual(len(nearest_neighbors[ii]), n_neighbors)
 
